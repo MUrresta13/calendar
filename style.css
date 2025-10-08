@@ -52,8 +52,8 @@ body{
 }
 .cell:active{transform:translateY(1px)}
 .cell.win{background:linear-gradient(180deg,#0f151d,#0b0f15);border-color:#2a6f54;box-shadow:0 0 20px rgba(57,217,138,.25)}
-.controls{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0 0}
-.turn{color:var(--muted)}
+.controls.single{display:flex;align-items:center;justify-content:center;margin:8px 0 0}
+.turn{color:var(--muted);text-align:center}
 .btn{border:1px solid #2a2f3c;background:#161a23;color:var(--ink);padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700;}
 .btn.primary{background:linear-gradient(180deg,#1a232c,#151a22);border-color:#2d3645;}
 .tips{color:var(--muted);text-align:center}

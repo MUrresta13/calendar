@@ -2,7 +2,6 @@
   const PLAYER = '🎃';
   const DRACULA = '🦇';
   const CELLS = [...document.querySelectorAll('.cell')];
-  const newGameBtn = document.getElementById('newGame');
   const turnText = document.getElementById('turnText');
   const resultDlg = document.getElementById('resultDlg');
   const resultTitle = document.getElementById('resultTitle');
@@ -21,26 +20,24 @@
   const PASS = 'DRACULASDEBT';
 
   let board = Array(9).fill(null);
-  let humanTurn = false; // Dracula goes first by default
+  let humanTurn = false;
   let gameOver = false;
 
-  // Draw-streak & first-move control
   const DRAW_STREAK_MAX = 3;
   let drawStreak = 0;
-  let playerStartsNextOnce = false; // becomes true after 3 draws in a row
+  let playerStartsNextOnce = false;
 
   function resetBoard() {
     board = Array(9).fill(null);
     CELLS.forEach(c => { c.textContent=''; c.classList.remove('win'); c.disabled=false; });
     gameOver = false;
 
-    // Decide who starts this round
     if (playerStartsNextOnce) {
       humanTurn = true;
-      playerStartsNextOnce = false; // only for this one round
+      playerStartsNextOnce = false;
       turnText.textContent = 'Your turn (🎃)';
     } else {
-      humanTurn = false; // Dracula starts
+      humanTurn = false;
       turnText.textContent = 'Dracula thinking…';
       setTimeout(draculaMove, 300);
     }
@@ -62,7 +59,6 @@
 
   function available(b) { return b.map((v,i)=>v?null:i).filter(i=>i!==null); }
 
-  // Minimax (unbeatable) with alpha-beta; returns best score and all best moves to add variety
   function minimax(b, isDracula, alpha=-Infinity, beta=Infinity, depth=0) {
     const res = checkWinner(b);
     if (res) {
@@ -93,7 +89,6 @@
 
   function draculaMove() {
     if (gameOver) return;
-    // Opening variety: choose randomly among optimal starts (center + corners)
     if (board.every(x => x === null)) {
       const firstChoices = [0,2,4,6,8];
       const m = firstChoices[Math.floor(Math.random()*firstChoices.length)];
@@ -123,15 +118,14 @@
   function endGame(result) {
     gameOver = true;
     if (result.winner === 'tie') {
-      // Track draws and grant first move next round after 3 in a row
       pTies.textContent = (+pTies.textContent)+1;
       drawStreak += 1;
       pDrawStreak.textContent = drawStreak;
       pbar.style.width = Math.min(100, (drawStreak/DRAW_STREAK_MAX)*100) + '%';
 
       if (drawStreak >= DRAW_STREAK_MAX) {
-        playerStartsNextOnce = true;  // player goes first next round
-        drawStreak = 0;               // reset streak after the grant
+        playerStartsNextOnce = true;
+        drawStreak = 0;
         pDrawStreak.textContent = drawStreak;
         pbar.style.width = '0%';
         showResult('It\'s a draw.', 'Three stalemates! Dracula yields the first move next round.');
@@ -141,14 +135,12 @@
     } else if (result.winner === PLAYER) {
       pWins.textContent = (+pWins.textContent)+1;
       highlight(result.line);
-      // Reveal passcode immediately on first win
       document.getElementById('code').textContent = PASS;
       passDlg.showModal();
       showResult('You win! 🎃', 'You bested Dracula!');
     } else {
       pLosses.textContent = (+pLosses.textContent)+1;
       highlight(result.line);
-      // Loss resets draw streak
       drawStreak = 0;
       pDrawStreak.textContent = drawStreak;
       pbar.style.width = '0%';
@@ -160,7 +152,6 @@
   function showResult(title, msg) { resultTitle.textContent = title; resultMsg.textContent = msg; resultDlg.showModal(); }
 
   againBtn.addEventListener('click', () => { resultDlg.close(); resetBoard(); });
-  newGameBtn.addEventListener('click', resetBoard);
 
   CELLS.forEach(btn => btn.addEventListener('click', () => {
     if (!humanTurn) return;
@@ -172,6 +163,5 @@
   });
   closePass.addEventListener('click', ()=> passDlg.close());
 
-  // init
   resetBoard();
 })();
