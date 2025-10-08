@@ -29,70 +29,67 @@
     board = Array(9).fill(null);
     cells.forEach(c => { c.textContent=''; c.classList.remove('win'); c.disabled=false; });
     gameOver = false;
-    humanTurn = false; // CPU starts every game
+    humanTurn = false;
     turnText.textContent = 'CPU thinking…';
     setTimeout(cpuMove, 300);
   }
 
-  function lines() {
-    return [
-      [0,1,2],[3,4,5],[6,7,8],
-      [0,3,6],[1,4,7],[2,5,8],
-      [0,4,8],[2,4,6]
-    ];
-  }
+  const winningLines = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
 
   function checkWinner(b = board) {
-    for (const [a,b2,c] of lines()) {
+    for (const [a,b2,c] of winningLines) {
       if (b[a] && b[a]===b[b2] && b[a]===b[c]) return { winner: b[a], line: [a,b2,c] };
     }
     if (b.every(x => x)) return { winner: 'tie' };
     return null;
   }
 
-  function available(b) {
-    const arr = [];
-    for (let i=0;i<9;i++) if (!b[i]) arr.push(i);
-    return arr;
-  }
+  function available(b) { return b.map((v,i)=>v?null:i).filter(i=>i!==null); }
 
-  // Perfect CPU: minimax + alpha-beta
+  // Minimax: return best score and ALL best moves so we can randomize among equals.
   function minimax(b, isCpu, alpha=-Infinity, beta=Infinity, depth=0) {
     const res = checkWinner(b);
     if (res) {
-      if (res.winner === CPU) return { score: 10 - depth };
-      if (res.winner === PLAYER) return { score: depth - 10 };
-      return { score: 0 };
+      if (res.winner === CPU) return { score: 10 - depth, moves: [] };
+      if (res.winner === PLAYER) return { score: depth - 10, moves: [] };
+      return { score: 0, moves: [] };
     }
-    let bestMove = -1;
-    if (isCpu) {
-      let bestScore = -Infinity;
-      for (const i of available(b)) {
-        b[i] = CPU;
-        const { score } = minimax(b, false, alpha, beta, depth+1);
-        b[i] = null;
-        if (score > bestScore) { bestScore = score; bestMove = i; }
+    let bestScore = isCpu ? -Infinity : Infinity;
+    let bestMoves = [];
+    for (const i of available(b)) {
+      b[i] = isCpu ? CPU : PLAYER;
+      const out = minimax(b, !isCpu, alpha, beta, depth+1);
+      b[i] = null;
+      const score = out.score;
+      if (isCpu) {
+        if (score > bestScore) { bestScore = score; bestMoves = [i]; }
+        else if (score === bestScore) bestMoves.push(i);
         alpha = Math.max(alpha, score);
-        if (beta <= alpha) break;
-      }
-      return { score: bestScore, move: bestMove };
-    } else {
-      let bestScore = Infinity;
-      for (const i of available(b)) {
-        b[i] = PLAYER;
-        const { score } = minimax(b, true, alpha, beta, depth+1);
-        b[i] = null;
-        if (score < bestScore) { bestScore = score; bestMove = i; }
+      } else {
+        if (score < bestScore) { bestScore = score; bestMoves = [i]; }
+        else if (score === bestScore) bestMoves.push(i);
         beta = Math.min(beta, score);
-        if (beta <= alpha) break;
       }
-      return { score: bestScore, move: bestMove };
+      if (beta <= alpha) break;
     }
+    return { score: bestScore, moves: bestMoves };
   }
 
   function cpuMove() {
     if (gameOver) return;
-    const { move } = minimax([...board], true);
+    // If opening move, choose randomly among optimal first moves (center + corners).
+    if (board.every(x => x === null)) {
+      const firstChoices = [0,2,4,6,8]; // corners + center are optimal
+      const m = firstChoices[Math.floor(Math.random()*firstChoices.length)];
+      place(m, CPU);
+      return;
+    }
+    const { moves } = minimax([...board], true);
+    const move = moves[Math.floor(Math.random()*moves.length)]; // random among equal best
     if (move != null) place(move, CPU);
   }
 
@@ -107,7 +104,7 @@
     else {
       humanTurn = !humanTurn;
       turnText.textContent = humanTurn ? 'Your turn (🎃)' : 'CPU thinking…';
-      if (!humanTurn) setTimeout(cpuMove, 250);
+      if (!humanTurn) setTimeout(cpuMove, 300);
     }
   }
 
@@ -121,7 +118,7 @@
       pWins.textContent = (+pWins.textContent)+1;
       highlight(result.line);
       incrementStreak();
-      showResult('You win! 🎃', 'Well played. The 🦇 started first and still fell.');
+      showResult('You win! 🎃', 'The 🦇 started first and still fell.');
     } else {
       pLosses.textContent = (+pLosses.textContent)+1;
       highlight(result.line);
@@ -131,22 +128,15 @@
   }
 
   function highlight(line) { if (!line) return; for (const i of line) cells[i].classList.add('win'); }
-
-  function showResult(title, msg) {
-    resultTitle.textContent = title;
-    resultMsg.textContent = msg;
-    resultDlg.showModal();
-  }
+  function showResult(title, msg) { resultTitle.textContent = title; resultMsg.textContent = msg; resultDlg.showModal(); }
 
   againBtn.addEventListener('click', () => { resultDlg.close(); resetBoard(); });
   newGameBtn.addEventListener('click', resetBoard);
 
-  cells.forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (!humanTurn) return;
-      place(+btn.dataset.idx, PLAYER);
-    });
-  });
+  cells.forEach(btn => btn.addEventListener('click', () => {
+    if (!humanTurn) return;
+    place(+btn.dataset.idx, PLAYER);
+  }));
 
   function incrementStreak() {
     const s = (+pStreak.textContent)+1;
@@ -164,6 +154,5 @@
   });
   closePass.addEventListener('click', ()=> passDlg.close());
 
-  // init (CPU opens)
   resetBoard();
 })();
