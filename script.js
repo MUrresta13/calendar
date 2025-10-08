@@ -1,7 +1,7 @@
 (() => {
   const PLAYER = '🎃';
-  const CPU = '🦇';
-  const cells = [...document.querySelectorAll('.cell')];
+  const DRACULA = '🦇';
+  const CELLS = [...document.querySelectorAll('.cell')];
   const newGameBtn = document.getElementById('newGame');
   const turnText = document.getElementById('turnText');
   const resultDlg = document.getElementById('resultDlg');
@@ -12,26 +12,38 @@
   const pWins = document.getElementById('wins');
   const pTies = document.getElementById('ties');
   const pLosses = document.getElementById('losses');
-  const pStreak = document.getElementById('streak');
+  const pDrawStreak = document.getElementById('drawStreak');
   const pbar = document.getElementById('pbar');
 
   const passDlg = document.getElementById('passDlg');
   const copyBtn = document.getElementById('copyBtn');
   const closePass = document.getElementById('closePass');
   const PASS = 'DRACULASDEBT';
-  const NEED_STREAK = 3;
 
   let board = Array(9).fill(null);
-  let humanTurn = false; // CPU goes first
+  let humanTurn = false; // Dracula goes first by default
   let gameOver = false;
+
+  // Draw-streak & first-move control
+  const DRAW_STREAK_MAX = 3;
+  let drawStreak = 0;
+  let playerStartsNextOnce = false; // becomes true after 3 draws in a row
 
   function resetBoard() {
     board = Array(9).fill(null);
-    cells.forEach(c => { c.textContent=''; c.classList.remove('win'); c.disabled=false; });
+    CELLS.forEach(c => { c.textContent=''; c.classList.remove('win'); c.disabled=false; });
     gameOver = false;
-    humanTurn = false;
-    turnText.textContent = 'CPU thinking…';
-    setTimeout(cpuMove, 300);
+
+    // Decide who starts this round
+    if (playerStartsNextOnce) {
+      humanTurn = true;
+      playerStartsNextOnce = false; // only for this one round
+      turnText.textContent = 'Your turn (🎃)';
+    } else {
+      humanTurn = false; // Dracula starts
+      turnText.textContent = 'Dracula thinking…';
+      setTimeout(draculaMove, 300);
+    }
   }
 
   const winningLines = [
@@ -50,22 +62,22 @@
 
   function available(b) { return b.map((v,i)=>v?null:i).filter(i=>i!==null); }
 
-  // Minimax: return best score and ALL best moves so we can randomize among equals.
-  function minimax(b, isCpu, alpha=-Infinity, beta=Infinity, depth=0) {
+  // Minimax (unbeatable) with alpha-beta; returns best score and all best moves to add variety
+  function minimax(b, isDracula, alpha=-Infinity, beta=Infinity, depth=0) {
     const res = checkWinner(b);
     if (res) {
-      if (res.winner === CPU) return { score: 10 - depth, moves: [] };
+      if (res.winner === DRACULA) return { score: 10 - depth, moves: [] };
       if (res.winner === PLAYER) return { score: depth - 10, moves: [] };
       return { score: 0, moves: [] };
     }
-    let bestScore = isCpu ? -Infinity : Infinity;
+    let bestScore = isDracula ? -Infinity : Infinity;
     let bestMoves = [];
     for (const i of available(b)) {
-      b[i] = isCpu ? CPU : PLAYER;
-      const out = minimax(b, !isCpu, alpha, beta, depth+1);
+      b[i] = isDracula ? DRACULA : PLAYER;
+      const out = minimax(b, !isDracula, alpha, beta, depth+1);
       b[i] = null;
       const score = out.score;
-      if (isCpu) {
+      if (isDracula) {
         if (score > bestScore) { bestScore = score; bestMoves = [i]; }
         else if (score === bestScore) bestMoves.push(i);
         alpha = Math.max(alpha, score);
@@ -79,80 +91,87 @@
     return { score: bestScore, moves: bestMoves };
   }
 
-  function cpuMove() {
+  function draculaMove() {
     if (gameOver) return;
-    // If opening move, choose randomly among optimal first moves (center + corners).
+    // Opening variety: choose randomly among optimal starts (center + corners)
     if (board.every(x => x === null)) {
-      const firstChoices = [0,2,4,6,8]; // corners + center are optimal
+      const firstChoices = [0,2,4,6,8];
       const m = firstChoices[Math.floor(Math.random()*firstChoices.length)];
-      place(m, CPU);
+      place(m, DRACULA);
       return;
     }
     const { moves } = minimax([...board], true);
-    const move = moves[Math.floor(Math.random()*moves.length)]; // random among equal best
-    if (move != null) place(move, CPU);
+    const move = moves[Math.floor(Math.random()*moves.length)];
+    if (move != null) place(move, DRACULA);
   }
 
   function place(idx, who) {
     if (board[idx] || gameOver) return;
     board[idx] = who;
-    cells[idx].textContent = who;
-    cells[idx].disabled = true;
+    CELLS[idx].textContent = who;
+    CELLS[idx].disabled = true;
 
     const result = checkWinner();
     if (result) endGame(result);
     else {
       humanTurn = !humanTurn;
-      turnText.textContent = humanTurn ? 'Your turn (🎃)' : 'CPU thinking…';
-      if (!humanTurn) setTimeout(cpuMove, 300);
+      turnText.textContent = humanTurn ? 'Your turn (🎃)' : 'Dracula thinking…';
+      if (!humanTurn) setTimeout(draculaMove, 300);
     }
   }
 
   function endGame(result) {
     gameOver = true;
     if (result.winner === 'tie') {
+      // Track draws and grant first move next round after 3 in a row
       pTies.textContent = (+pTies.textContent)+1;
-      incrementStreak();
-      showResult('It\'s a draw.', 'You held off the 🦇! Draws count toward your streak.');
+      drawStreak += 1;
+      pDrawStreak.textContent = drawStreak;
+      pbar.style.width = Math.min(100, (drawStreak/DRAW_STREAK_MAX)*100) + '%';
+
+      if (drawStreak >= DRAW_STREAK_MAX) {
+        playerStartsNextOnce = true;  // player goes first next round
+        drawStreak = 0;               // reset streak after the grant
+        pDrawStreak.textContent = drawStreak;
+        pbar.style.width = '0%';
+        showResult('It\'s a draw.', 'Three stalemates! Dracula yields the first move next round.');
+      } else {
+        showResult('It\'s a draw.', 'Another stalemate. Keep going…');
+      }
     } else if (result.winner === PLAYER) {
       pWins.textContent = (+pWins.textContent)+1;
       highlight(result.line);
-      incrementStreak();
-      showResult('You win! 🎃', 'The 🦇 started first and still fell.');
+      // Reveal passcode immediately on first win
+      document.getElementById('code').textContent = PASS;
+      passDlg.showModal();
+      showResult('You win! 🎃', 'You bested Dracula!');
     } else {
       pLosses.textContent = (+pLosses.textContent)+1;
       highlight(result.line);
-      resetStreak();
-      showResult('You lost…', 'This CPU is ruthless. Try again!');
+      // Loss resets draw streak
+      drawStreak = 0;
+      pDrawStreak.textContent = drawStreak;
+      pbar.style.width = '0%';
+      showResult('Defeated…', 'Dracula claims this one. Try again!');
     }
   }
 
-  function highlight(line) { if (!line) return; for (const i of line) cells[i].classList.add('win'); }
+  function highlight(line) { if (!line) return; for (const i of line) CELLS[i].classList.add('win'); }
   function showResult(title, msg) { resultTitle.textContent = title; resultMsg.textContent = msg; resultDlg.showModal(); }
 
   againBtn.addEventListener('click', () => { resultDlg.close(); resetBoard(); });
   newGameBtn.addEventListener('click', resetBoard);
 
-  cells.forEach(btn => btn.addEventListener('click', () => {
+  CELLS.forEach(btn => btn.addEventListener('click', () => {
     if (!humanTurn) return;
     place(+btn.dataset.idx, PLAYER);
   }));
-
-  function incrementStreak() {
-    const s = (+pStreak.textContent)+1;
-    pStreak.textContent = s;
-    pbar.style.width = Math.min(100, (s/NEED_STREAK)*100) + '%';
-    if (s >= NEED_STREAK) {
-      document.getElementById('code').textContent = PASS;
-      passDlg.showModal();
-    }
-  }
-  function resetStreak() { pStreak.textContent = 0; pbar.style.width = '0%'; }
 
   copyBtn.addEventListener('click', async () => {
     try{ await navigator.clipboard.writeText(PASS); copyBtn.textContent='Copied!'; setTimeout(()=>copyBtn.textContent='Copy code',1000);}catch{}
   });
   closePass.addEventListener('click', ()=> passDlg.close());
 
+  // init
   resetBoard();
 })();
