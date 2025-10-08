@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calendar — Halloween Tic‑Tac‑Toe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="hdr">
+      <h1>🕯️ Halloween Tic‑Tac‑Toe</h1>
+      <p class="sub">CPU goes first. Beat or draw the CPU <strong>three games in a row</strong> to reveal the passcode for Clue 3.</p>
+      <div class="stats">
+        <div class="stat"><span id="wins">0</span><small>Wins</small></div>
+        <div class="stat"><span id="ties">0</span><small>Ties</small></div>
+        <div class="stat"><span id="losses">0</span><small>Losses</small></div>
+        <div class="stat streak">
+          <span id="streak">0</span><small>Streak (W/T in a row)</small>
+          <div class="progress"><div id="pbar"></div></div>
+        </div>
+      </div>
+    </header>
+
+    <section class="board-card">
+      <div id="board" class="board" role="grid" aria-label="Tic tac toe board">
+        <button class="cell" data-idx="0" aria-label="cell 1"></button>
+        <button class="cell" data-idx="1" aria-label="cell 2"></button>
+        <button class="cell" data-idx="2" aria-label="cell 3"></button>
+        <button class="cell" data-idx="3" aria-label="cell 4"></button>
+        <button class="cell" data-idx="4" aria-label="cell 5"></button>
+        <button class="cell" data-idx="5" aria-label="cell 6"></button>
+        <button class="cell" data-idx="6" aria-label="cell 7"></button>
+        <button class="cell" data-idx="7" aria-label="cell 8"></button>
+        <button class="cell" data-idx="8" aria-label="cell 9"></button>
+      </div>
+      <div class="controls">
+        <button id="newGame" class="btn primary">New Game</button>
+        <span id="turnText" class="turn">CPU starts…</span>
+      </div>
+      <p class="tips">You are <b>🎃</b>. CPU is <b>🦇</b>. Survive three rounds in a row!</p>
+    </section>
+  </main>
+
+  <dialog id="resultDlg">
+    <h2 id="resultTitle">Result</h2>
+    <p id="resultMsg"></p>
+    <div class="dlg-actions">
+      <button class="btn" id="againBtn">Play again</button>
+    </div>
+  </dialog>
+
+  <dialog id="passDlg">
+    <h2>Victory Streak! 🎉</h2>
+    <p class="code-line">Passcode for Clue 3:</p>
+    <div class="code-box" id="code">DRACULASDEBT</div>
+    <div class="dlg-actions">
+      <button class="btn" id="copyBtn">Copy code</button>
+      <button class="btn primary" id="closePass">Close</button>
+    </div>
+  </dialog>
+
+  <script src="script.js?v=2"></script>
+</body>
+</html>
