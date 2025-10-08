@@ -1,50 +1,64 @@
 (() => {
-  // ---------- Intro sequencing ----------
-  const introBlack = document.getElementById('introBlack');
-  const introVideoWrap = document.getElementById('introVideoWrap');
-  const introVideo = document.getElementById('introVideo');
-  const unmuteBtn = document.getElementById('unmuteBtn');
-  const app = document.getElementById('app');
+  document.addEventListener('DOMContentLoaded', () => {
+    const startOverlay = document.getElementById('startOverlay');
+    const startBtn = document.getElementById('startBtn');
+    const introBlack = document.getElementById('introBlack');
+    const introVideoWrap = document.getElementById('introVideoWrap');
+    const introVideo = document.getElementById('introVideo');
+    const unmuteBtn = document.getElementById('unmuteBtn');
+    const app = document.getElementById('app');
 
-  setTimeout(async () => {
-    introBlack.classList.add('fade-out');
-    setTimeout(()=>{ introBlack.style.display='none'; }, 700);
+    // Gate everything behind the Start button
+    startBtn.addEventListener('click', async () => {
+      startOverlay.style.display = 'none';
 
-    introVideoWrap.classList.remove('hidden');
-    introVideoWrap.setAttribute('aria-hidden','false');
+      // 3s black
+      introBlack.classList.remove('hidden');
+      introBlack.setAttribute('aria-hidden','false');
+      await new Promise(res => setTimeout(res, 3000));
+      introBlack.classList.add('fade-out');
+      setTimeout(()=>{ introBlack.style.display='none'; }, 650);
 
-    try {
-      await introVideo.play();
-      unmuteBtn.classList.remove('hidden');
-      unmuteBtn.addEventListener('click', () => {
+      // Show and try to play the video with sound first
+      introVideoWrap.classList.remove('hidden');
+      introVideoWrap.setAttribute('aria-hidden','false');
+      try {
         introVideo.muted = false;
-        unmuteBtn.classList.add('hidden');
-        introVideo.play().catch(()=>{});
-      });
-    } catch (e) {
-      unmuteBtn.textContent = 'Tap to play';
-      unmuteBtn.classList.remove('hidden');
-      unmuteBtn.addEventListener('click', async () => {
-        try { await introVideo.play(); unmuteBtn.textContent='Tap to unmute'; }
-        catch {}
-      }, { once:true });
-    }
-  }, 3000);
+        await introVideo.play();
+      } catch {
+        try {
+          introVideo.muted = true;
+          await introVideo.play();
+          unmuteBtn.classList.remove('hidden');
+          unmuteBtn.addEventListener('click', () => {
+            introVideo.muted = false;
+            unmuteBtn.classList.add('hidden');
+            introVideo.play().catch(()=>{});
+          });
+        } catch {}
+      }
 
-  function endIntro() {
-    introVideoWrap.classList.add('fade-out');
-    setTimeout(()=>{
-      introVideoWrap.style.display='none';
-      app.classList.remove('hidden');
-      app.classList.add('show');
-      setTimeout(initGame, 50);
-    }, 650);
-  }
+      // When video ends, reveal app
+      const endIntro = () => {
+        introVideoWrap.classList.add('fade-out');
+        setTimeout(()=>{
+          introVideoWrap.style.display='none';
+          app.classList.remove('hidden');
+          app.classList.add('show');
+          app.setAttribute('aria-hidden','false');
+          setTimeout(initGame, 50);
+        }, 650);
+      };
+      introVideo.addEventListener('ended', endIntro, { once:true });
 
-  introVideo.addEventListener('ended', endIntro);
-  setTimeout(()=>{ if (app.classList.contains('hidden')) endIntro(); }, 12000);
+      // Backup in case of failure: reveal after 15s
+      setTimeout(() => {
+        if (app.classList.contains('hidden')) endIntro();
+      }, 15000);
+    });
+  });
 
-  // ---------- Game logic ----------
+  // ----------------- Game logic (unchanged) -----------------
   function initGame() {
     const PLAYER = '🎃';
     const DRACULA = '🦇';
