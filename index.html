@@ -9,7 +9,15 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="wrap">
+  <div id="introBlack" class="intro-black" aria-hidden="true"></div>
+  <div id="introVideoWrap" class="intro-video hidden" aria-hidden="true">
+    <video id="introVideo" playsinline muted preload="auto" class="intro-video-el">
+      <source src="Dracula.mp4" type="video/mp4" />
+    </video>
+    <button id="unmuteBtn" class="unmute-btn hidden" aria-label="Unmute video">Tap to unmute</button>
+  </div>
+
+  <main id="app" class="wrap app hidden">
     <header class="hdr">
       <h1>🕯️ Dracula’s Tic‑Tac‑Toe</h1>
       <p class="sub">Defeat <strong>Dracula</strong> once to reveal the passcode for Clue 3. Dracula goes first… unless you draw with him three times in a row — then you get the first move for the next round.</p>
@@ -61,6 +69,6 @@
     </div>
   </dialog>
 
-  <script src="script.js?v=5"></script>
+  <script src="script.js?v=6"></script>
 </body>
 </html>
