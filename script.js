@@ -7,18 +7,16 @@
     const unmuteBtn = document.getElementById('unmuteBtn');
     const app = document.getElementById('app');
 
-    // Start: button click -> play video immediately
+    // Start -> play video immediately
     startBtn.addEventListener('click', async () => {
       startOverlay.style.display = 'none';
       introVideoWrap.classList.remove('hidden');
       introVideoWrap.setAttribute('aria-hidden','false');
 
       try {
-        // Try with audio first (user gesture should allow)
         introVideo.muted = false;
         await introVideo.play();
       } catch {
-        // Fall back to muted + unmute button
         try {
           introVideo.muted = true;
           await introVideo.play();
@@ -29,22 +27,16 @@
             introVideo.play().catch(()=>{});
           });
         } catch {
-          // If video still fails, skip straight to app
           revealApp();
         }
       }
 
-      // When video ends, reveal game
       introVideo.addEventListener('ended', () => revealApp(), { once: true });
-
-      // Safety fallback: if nothing happens after 12s, reveal app
-      setTimeout(() => {
-        if (app.classList.contains('hidden')) revealApp();
-      }, 12000);
+      setTimeout(() => { if (app.classList.contains('hidden')) revealApp(); }, 15000);
     });
 
     function revealApp() {
-      introVideo.pause();
+      try { introVideo.pause(); } catch {}
       introVideoWrap.classList.add('fade-out');
       setTimeout(() => {
         introVideoWrap.style.display = 'none';
@@ -56,7 +48,7 @@
     }
   });
 
-  /* ------------- Game logic (unchanged rules) ------------- */
+  // ------------- Game logic (unchanged) -------------
   function initGame() {
     const PLAYER = '🎃';
     const DRACULA = '🦇';
