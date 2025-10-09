@@ -18,8 +18,9 @@ body{
     radial-gradient(1200px 1200px at 10% -10%, #18202a 0%, transparent 60%),
     radial-gradient(800px 800px at 110% 10%, #1b1426 0%, transparent 60%),
     #0b0b10;
-  overflow:hidden;
+  overflow:auto; /* allow scrolling by default */
 }
+body.noscroll{overflow:hidden} /* we only use this during overlays */
 
 /* Start overlay */
 .start-overlay{

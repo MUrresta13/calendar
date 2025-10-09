@@ -7,6 +7,9 @@
     const unmuteBtn = document.getElementById('unmuteBtn');
     const app = document.getElementById('app');
 
+    // While overlays are up, prevent scroll; once game shown, enable
+    document.body.classList.add('noscroll');
+
     // Start -> play video immediately
     startBtn.addEventListener('click', async () => {
       startOverlay.style.display = 'none';
@@ -43,6 +46,7 @@
         app.classList.remove('hidden');
         app.classList.add('show');
         app.setAttribute('aria-hidden','false');
+        document.body.classList.remove('noscroll'); // allow page scroll again
         setTimeout(initGame, 50);
       }, 500);
     }
