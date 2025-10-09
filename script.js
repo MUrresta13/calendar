@@ -2,30 +2,23 @@
   document.addEventListener('DOMContentLoaded', () => {
     const startOverlay = document.getElementById('startOverlay');
     const startBtn = document.getElementById('startBtn');
-    const introBlack = document.getElementById('introBlack');
     const introVideoWrap = document.getElementById('introVideoWrap');
     const introVideo = document.getElementById('introVideo');
     const unmuteBtn = document.getElementById('unmuteBtn');
     const app = document.getElementById('app');
 
-    // Gate everything behind the Start button
+    // Start: button click -> play video immediately
     startBtn.addEventListener('click', async () => {
       startOverlay.style.display = 'none';
-
-      // 3s black
-      introBlack.classList.remove('hidden');
-      introBlack.setAttribute('aria-hidden','false');
-      await new Promise(res => setTimeout(res, 3000));
-      introBlack.classList.add('fade-out');
-      setTimeout(()=>{ introBlack.style.display='none'; }, 650);
-
-      // Show and try to play the video with sound first
       introVideoWrap.classList.remove('hidden');
       introVideoWrap.setAttribute('aria-hidden','false');
+
       try {
+        // Try with audio first (user gesture should allow)
         introVideo.muted = false;
         await introVideo.play();
       } catch {
+        // Fall back to muted + unmute button
         try {
           introVideo.muted = true;
           await introVideo.play();
@@ -35,30 +28,35 @@
             unmuteBtn.classList.add('hidden');
             introVideo.play().catch(()=>{});
           });
-        } catch {}
+        } catch {
+          // If video still fails, skip straight to app
+          revealApp();
+        }
       }
 
-      // When video ends, reveal app
-      const endIntro = () => {
-        introVideoWrap.classList.add('fade-out');
-        setTimeout(()=>{
-          introVideoWrap.style.display='none';
-          app.classList.remove('hidden');
-          app.classList.add('show');
-          app.setAttribute('aria-hidden','false');
-          setTimeout(initGame, 50);
-        }, 650);
-      };
-      introVideo.addEventListener('ended', endIntro, { once:true });
+      // When video ends, reveal game
+      introVideo.addEventListener('ended', () => revealApp(), { once: true });
 
-      // Backup in case of failure: reveal after 15s
+      // Safety fallback: if nothing happens after 12s, reveal app
       setTimeout(() => {
-        if (app.classList.contains('hidden')) endIntro();
-      }, 15000);
+        if (app.classList.contains('hidden')) revealApp();
+      }, 12000);
     });
+
+    function revealApp() {
+      introVideo.pause();
+      introVideoWrap.classList.add('fade-out');
+      setTimeout(() => {
+        introVideoWrap.style.display = 'none';
+        app.classList.remove('hidden');
+        app.classList.add('show');
+        app.setAttribute('aria-hidden','false');
+        setTimeout(initGame, 50);
+      }, 500);
+    }
   });
 
-  // ----------------- Game logic (unchanged) -----------------
+  /* ------------- Game logic (unchanged rules) ------------- */
   function initGame() {
     const PLAYER = '🎃';
     const DRACULA = '🦇';

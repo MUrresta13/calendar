@@ -18,7 +18,7 @@ body{
     radial-gradient(1200px 1200px at 10% -10%, #18202a 0%, transparent 60%),
     radial-gradient(800px 800px at 110% 10%, #1b1426 0%, transparent 60%),
     #0b0b10;
-  overflow:hidden; /* prevent scroll during overlays */
+  overflow:hidden;
 }
 
 /* Start overlay */
@@ -31,8 +31,7 @@ body{
   box-shadow:0 10px 40px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.06);
 }
 
-/* Intro */
-.intro-black{position:fixed;inset:0;background:#000;opacity:1;transition:opacity .6s ease;z-index:1100;}
+/* Video */
 .intro-video{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:1100;opacity:1;transition:opacity .6s ease;}
 .intro-video-el{width:100%;height:100%;object-fit:contain;background:#000}
 .unmute-btn{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);border:1px solid #2a2f3c;background:#161a23;color:var(--ink);padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;}

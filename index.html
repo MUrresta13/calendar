@@ -9,15 +9,14 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Start overlay (user action gate) -->
+  <!-- Start overlay -->
   <div id="startOverlay" class="start-overlay" aria-modal="true" role="dialog">
     <button id="startBtn" class="start-btn" autofocus>Start the Challenge</button>
   </div>
 
-  <!-- Intro sequence -->
-  <div id="introBlack" class="intro-black hidden" aria-hidden="true"></div>
+  <!-- Video -->
   <div id="introVideoWrap" class="intro-video hidden" aria-hidden="true">
-    <video id="introVideo" playsinline muted preload="auto" class="intro-video-el">
+    <video id="introVideo" playsinline preload="auto" class="intro-video-el">
       <source src="Dracula.mp4" type="video/mp4" />
     </video>
     <button id="unmuteBtn" class="unmute-btn hidden" aria-label="Unmute video">Tap to unmute</button>
@@ -76,6 +75,6 @@
     </div>
   </dialog>
 
-  <script src="script.js?v=8"></script>
+  <script src="script.js?v=10"></script>
 </body>
 </html>
